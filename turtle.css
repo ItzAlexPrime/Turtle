@@ -46,18 +46,22 @@ body {
   display: flex;
   gap: 8px;
   margin-bottom: 12px;
+  position: relative;
+  z-index: 10; /* Поднимаем слой над всеми элементами */
 }
 
 .lang-btn {
   background: #0d1117;
   border: 1px solid var(--border-color);
   color: #8b949e;
-  padding: 4px 12px;
+  padding: 6px 14px;
   border-radius: 6px;
   font-size: 11px;
   font-weight: bold;
   cursor: pointer;
   transition: all 0.2s ease;
+  pointer-events: auto !important; /* Гарантия отклика на клик */
+  user-select: none;
 }
 
 .lang-btn:hover {
@@ -65,11 +69,12 @@ body {
   color: var(--accent-cyan);
 }
 
+/* Подсветка активной кнопки */
 .lang-btn.active {
-  background: rgba(0, 229, 255, 0.1);
-  border-color: var(--accent-cyan);
-  color: var(--accent-cyan);
-  box-shadow: 0 0 8px rgba(0, 229, 255, 0.25);
+  background: rgba(0, 229, 255, 0.15) !important;
+  border-color: var(--accent-cyan) !important;
+  color: var(--accent-cyan) !important;
+  box-shadow: 0 0 10px rgba(0, 229, 255, 0.4);
 }
 
 /* 3D Заголовок */
