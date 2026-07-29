@@ -6,7 +6,7 @@ const turtleSounds = [
   "puff", "pf-sh", "puff-z", "pff", "puff-h", "pf-ch"
 ];
 
-// Словарь интерфейса (I18N)
+// Переводы интерфейса
 const I18N = {
   ru: {
     btnToTurtle: "Человек ➔ Черепаха",
@@ -40,13 +40,13 @@ const I18N = {
   }
 };
 
-// Загрузка состояния из localStorage
+// Загрузка словаря и языка
 let wordToTurtleMap = JSON.parse(localStorage.getItem('wordToTurtleMap')) || {};
 let turtleToWordMap = JSON.parse(localStorage.getItem('turtleToWordMap')) || {};
 let currentMode = 'toTurtle';
-let currentLang = localStorage.getItem('uiLang') || 'en';
+let currentLang = localStorage.getItem('uiLang') || 'en'; // По умолчанию EN
 
-// DOM элементы
+// DOM Элементы
 const btnToTurtle = document.getElementById('btnToTurtle');
 const btnFromTurtle = document.getElementById('btnFromTurtle');
 const inputLabel = document.getElementById('inputLabel');
@@ -63,20 +63,20 @@ function saveDict() {
   localStorage.setItem('turtleToWordMap', JSON.stringify(turtleToWordMap));
 }
 
-// Установка языка интерфейса
+// Потоковое изменение текстов UI
 function setLanguage(lang) {
   currentLang = lang;
   localStorage.setItem('uiLang', lang);
 
-  langRu.classList.toggle('active', lang === 'ru');
-  langEn.classList.toggle('active', lang === 'en');
+  if (langRu) langRu.classList.toggle('active', lang === 'ru');
+  if (langEn) langEn.classList.toggle('active', lang === 'en');
 
   const t = I18N[lang];
-  btnToTurtle.innerText = t.btnToTurtle;
-  btnFromTurtle.innerText = t.btnFromTurtle;
-  outputLabel.innerText = t.outputLabel;
-  copyBtn.innerText = t.copyBtn;
-  footerText.innerText = t.footer;
+  if (btnToTurtle) btnToTurtle.innerText = t.btnToTurtle;
+  if (btnFromTurtle) btnFromTurtle.innerText = t.btnFromTurtle;
+  if (outputLabel) outputLabel.innerText = t.outputLabel;
+  if (copyBtn) copyBtn.innerText = t.copyBtn;
+  if (footerText) footerText.innerText = t.footer;
 
   updateInputTexts();
   handleTranslate();
@@ -85,22 +85,22 @@ function setLanguage(lang) {
 function updateInputTexts() {
   const t = I18N[currentLang];
   if (currentMode === 'toTurtle') {
-    inputLabel.innerText = t.inputToTurtle;
-    inputText.placeholder = t.placeholderToTurtle;
+    if (inputLabel) inputLabel.innerText = t.inputToTurtle;
+    if (inputText) inputText.placeholder = t.placeholderToTurtle;
   } else {
-    inputLabel.innerText = t.inputFromTurtle;
-    inputText.placeholder = t.placeholderFromTurtle;
+    if (inputLabel) inputLabel.innerText = t.inputFromTurtle;
+    if (inputText) inputText.placeholder = t.placeholderFromTurtle;
   }
 }
 
 function setMode(mode) {
   currentMode = mode;
-  btnToTurtle.classList.toggle('active', mode === 'toTurtle');
-  btnFromTurtle.classList.toggle('active', mode === 'fromTurtle');
+  if (btnToTurtle) btnToTurtle.classList.toggle('active', mode === 'toTurtle');
+  if (btnFromTurtle) btnFromTurtle.classList.toggle('active', mode === 'fromTurtle');
 
   updateInputTexts();
-  inputText.value = '';
-  outputText.innerText = I18N[currentLang].empty;
+  if (inputText) inputText.value = '';
+  if (outputText) outputText.innerText = I18N[currentLang].empty;
 }
 
 function splitWordAndPunctuation(token) {
@@ -116,7 +116,7 @@ function splitWordAndPunctuation(token) {
   return { cleanWord, punct };
 }
 
-// 32-битный FNV-1a Хэш (Синхронизировано с C++)
+// 32-bit FNV-1a Hash (Sync with C++)
 function fnv1a32(str) {
   let hash = 0x811c9dc5;
   for (let i = 0; i < str.length; i++) {
@@ -142,7 +142,6 @@ function generateTurtleCode(word) {
 
   let code = `${turtleSounds[idx1]}-${turtleSounds[idx2]}-${turtleSounds[idx3]}`;
 
-  // Коллизии
   if (turtleToWordMap[code] && turtleToWordMap[code] !== clean) {
     let idx4 = Math.floor(hash / 27000) % 30;
     code += `-${turtleSounds[idx4]}`;
@@ -156,6 +155,7 @@ function generateTurtleCode(word) {
 }
 
 function handleTranslate() {
+  if (!inputText || !outputText) return;
   let input = inputText.value.trim();
   const t = I18N[currentLang];
 
@@ -195,24 +195,25 @@ function handleTranslate() {
   }
 }
 
-// Копирование в буфер обмена
-copyBtn.addEventListener('click', () => {
-  const text = outputText.innerText;
-  const t = I18N[currentLang];
-  if (text && text !== t.silence && text !== t.empty) {
-    navigator.clipboard.writeText(text);
-    copyBtn.innerText = t.copiedBtn;
-    setTimeout(() => copyBtn.innerText = t.copyBtn, 1500);
-  }
-});
+// Навешиваем клики
+if (copyBtn) {
+  copyBtn.addEventListener('click', () => {
+    const text = outputText ? outputText.innerText : '';
+    const t = I18N[currentLang];
+    if (text && text !== t.silence && text !== t.empty) {
+      navigator.clipboard.writeText(text);
+      copyBtn.innerText = t.copiedBtn;
+      setTimeout(() => copyBtn.innerText = t.copyBtn, 1500);
+    }
+  });
+}
 
-// Слушатели событий
-btnToTurtle.addEventListener('click', () => setMode('toTurtle'));
-btnFromTurtle.addEventListener('click', () => setMode('fromTurtle'));
-inputText.addEventListener('input', handleTranslate);
+if (btnToTurtle) btnToTurtle.addEventListener('click', () => setMode('toTurtle'));
+if (btnFromTurtle) btnFromTurtle.addEventListener('click', () => setMode('fromTurtle'));
+if (inputText) inputText.addEventListener('input', handleTranslate);
 
 if (langRu) langRu.addEventListener('click', () => setLanguage('ru'));
 if (langEn) langEn.addEventListener('click', () => setLanguage('en'));
 
-// Первоначальная инициализация
+// Инициализация при запуске
 setLanguage(currentLang);
