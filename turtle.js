@@ -6,23 +6,91 @@ const turtleSounds = [
   "puff", "pf-sh", "puff-z", "pff", "puff-h", "pf-ch"
 ];
 
-// Загрузка словаря из localStorage
+// Словарь интерфейса (I18N)
+const I18N = {
+  ru: {
+    btnToTurtle: "Человек ➔ Черепаха",
+    btnFromTurtle: "Черепаха ➔ Человек",
+    inputToTurtle: "Введи текст на человеческом:",
+    inputFromTurtle: "Введи черепашью фразу:",
+    placeholderToTurtle: "Привет...",
+    placeholderFromTurtle: "hiss-clack-honk / squeak-puff-hum...",
+    outputLabel: "Результат:",
+    copyBtn: "Скопировать",
+    copiedBtn: "Скопировано!",
+    empty: "... (пусто)",
+    silence: "... (тишина)",
+    unknownSound: "[неизвестный звук]",
+    footer: "Словарь сохраняется в память устройства"
+  },
+  en: {
+    btnToTurtle: "Human ➔ Turtle",
+    btnFromTurtle: "Turtle ➔ Human",
+    inputToTurtle: "Enter text in human language:",
+    inputFromTurtle: "Enter turtle phrase:",
+    placeholderToTurtle: "Hello...",
+    placeholderFromTurtle: "hiss-clack-honk / squeak-puff-hum...",
+    outputLabel: "Result:",
+    copyBtn: "Copy",
+    copiedBtn: "Copied!",
+    empty: "... (empty)",
+    silence: "... (silence)",
+    unknownSound: "[unknown sound]",
+    footer: "Dictionary saved to local device storage"
+  }
+};
+
+// Загрузка состояния из localStorage
 let wordToTurtleMap = JSON.parse(localStorage.getItem('wordToTurtleMap')) || {};
 let turtleToWordMap = JSON.parse(localStorage.getItem('turtleToWordMap')) || {};
-
 let currentMode = 'toTurtle';
+let currentLang = localStorage.getItem('uiLang') || 'en';
 
 // DOM элементы
 const btnToTurtle = document.getElementById('btnToTurtle');
 const btnFromTurtle = document.getElementById('btnFromTurtle');
 const inputLabel = document.getElementById('inputLabel');
 const inputText = document.getElementById('inputText');
+const outputLabel = document.getElementById('outputLabel');
 const outputText = document.getElementById('outputText');
 const copyBtn = document.getElementById('copyBtn');
+const footerText = document.getElementById('footerText');
+const langRu = document.getElementById('langRu');
+const langEn = document.getElementById('langEn');
 
 function saveDict() {
   localStorage.setItem('wordToTurtleMap', JSON.stringify(wordToTurtleMap));
   localStorage.setItem('turtleToWordMap', JSON.stringify(turtleToWordMap));
+}
+
+// Установка языка интерфейса
+function setLanguage(lang) {
+  currentLang = lang;
+  localStorage.setItem('uiLang', lang);
+
+  langRu.classList.toggle('active', lang === 'ru');
+  langEn.classList.toggle('active', lang === 'en');
+
+  const t = I18N[lang];
+  btnToTurtle.innerText = t.btnToTurtle;
+  btnFromTurtle.innerText = t.btnFromTurtle;
+  outputLabel.innerText = t.outputLabel;
+  copyBtn.innerText = t.copyBtn;
+  footerText.innerText = t.footer;
+
+  updateInputTexts();
+  handleTranslate();
+}
+
+function updateInputTexts() {
+  const t = I18N[currentLang];
+  if (currentMode === 'toTurtle') {
+    inputLabel.innerText = t.inputToTurtle;
+    inputText.placeholder = t.placeholderToTurtle;
+  } else {
+    inputLabel.innerText = t.inputFromTurtle;
+    inputText.placeholder = t.placeholderFromTurtle;
+  }
 }
 
 function setMode(mode) {
@@ -30,12 +98,9 @@ function setMode(mode) {
   btnToTurtle.classList.toggle('active', mode === 'toTurtle');
   btnFromTurtle.classList.toggle('active', mode === 'fromTurtle');
 
-  inputLabel.innerText = mode === 'toTurtle'
-    ? 'Введи текст на человеческом:'
-    : 'Введи черепашью фразу:';
-
+  updateInputTexts();
   inputText.value = '';
-  outputText.innerText = '... (пусто)';
+  outputText.innerText = I18N[currentLang].empty;
 }
 
 function splitWordAndPunctuation(token) {
@@ -51,6 +116,16 @@ function splitWordAndPunctuation(token) {
   return { cleanWord, punct };
 }
 
+// 32-битный FNV-1a Хэш (Синхронизировано с C++)
+function fnv1a32(str) {
+  let hash = 0x811c9dc5;
+  for (let i = 0; i < str.length; i++) {
+    hash ^= str.charCodeAt(i);
+    hash = Math.imul(hash, 0x01000193) >>> 0;
+  }
+  return hash;
+}
+
 function generateTurtleCode(word) {
   if (!word) return "";
   let clean = word.toLowerCase();
@@ -59,11 +134,7 @@ function generateTurtleCode(word) {
     return wordToTurtleMap[clean];
   }
 
-  // Генерация 32-битного хэша
-  let hash = 0;
-  for (let i = 0; i < clean.length; i++) {
-    hash = (hash * 31 + clean.charCodeAt(i)) >>> 0;
-  }
+  let hash = fnv1a32(clean);
 
   let idx1 = hash % 30;
   let idx2 = Math.floor(hash / 30) % 30;
@@ -71,7 +142,8 @@ function generateTurtleCode(word) {
 
   let code = `${turtleSounds[idx1]}-${turtleSounds[idx2]}-${turtleSounds[idx3]}`;
 
-  if (turtleToWordMap[code]) {
+  // Коллизии
+  if (turtleToWordMap[code] && turtleToWordMap[code] !== clean) {
     let idx4 = Math.floor(hash / 27000) % 30;
     code += `-${turtleSounds[idx4]}`;
   }
@@ -85,9 +157,10 @@ function generateTurtleCode(word) {
 
 function handleTranslate() {
   let input = inputText.value.trim();
+  const t = I18N[currentLang];
 
   if (!input) {
-    outputText.innerText = '... (тишина)';
+    outputText.innerText = t.silence;
     return;
   }
 
@@ -109,10 +182,11 @@ function handleTranslate() {
         result += ' ';
       } else {
         let { cleanWord, punct } = splitWordAndPunctuation(token);
-        if (turtleToWordMap[cleanWord]) {
-          result += turtleToWordMap[cleanWord] + punct + ' ';
+        let lowerClean = cleanWord.toLowerCase();
+        if (turtleToWordMap[lowerClean]) {
+          result += turtleToWordMap[lowerClean] + punct + ' ';
         } else {
-          result += '[неизвестный звук]' + punct + ' ';
+          result += t.unknownSound + punct + ' ';
         }
       }
     });
@@ -124,10 +198,11 @@ function handleTranslate() {
 // Копирование в буфер обмена
 copyBtn.addEventListener('click', () => {
   const text = outputText.innerText;
-  if (text && text !== '... (тишина)' && text !== '... (пусто)') {
+  const t = I18N[currentLang];
+  if (text && text !== t.silence && text !== t.empty) {
     navigator.clipboard.writeText(text);
-    copyBtn.innerText = 'Скопировано!';
-    setTimeout(() => copyBtn.innerText = 'Скопировать', 1500);
+    copyBtn.innerText = t.copiedBtn;
+    setTimeout(() => copyBtn.innerText = t.copyBtn, 1500);
   }
 });
 
@@ -135,3 +210,9 @@ copyBtn.addEventListener('click', () => {
 btnToTurtle.addEventListener('click', () => setMode('toTurtle'));
 btnFromTurtle.addEventListener('click', () => setMode('fromTurtle'));
 inputText.addEventListener('input', handleTranslate);
+
+if (langRu) langRu.addEventListener('click', () => setLanguage('ru'));
+if (langEn) langEn.addEventListener('click', () => setLanguage('en'));
+
+// Первоначальная инициализация
+setLanguage(currentLang);
