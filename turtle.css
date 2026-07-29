@@ -33,6 +33,45 @@ body {
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
 }
 
+/* Обертка заголовка */
+.header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+/* Переключатель языка (RU / EN) */
+.lang-switch {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.lang-btn {
+  background: #0d1117;
+  border: 1px solid var(--border-color);
+  color: #8b949e;
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.lang-btn:hover {
+  border-color: var(--accent-cyan);
+  color: var(--accent-cyan);
+}
+
+.lang-btn.active {
+  background: rgba(0, 229, 255, 0.1);
+  border-color: var(--accent-cyan);
+  color: var(--accent-cyan);
+  box-shadow: 0 0 8px rgba(0, 229, 255, 0.25);
+}
+
 /* 3D Заголовок */
 .header-3d {
   text-align: center;
@@ -46,7 +85,6 @@ body {
     0 2px 0 #008833,
     0 3px 0 #006622,
     0 4px 10px rgba(0, 255, 102, 0.4);
-  margin-bottom: 20px;
 }
 
 .mode-selector {
@@ -66,6 +104,11 @@ body {
   cursor: pointer;
   font-weight: bold;
   transition: all 0.2s;
+}
+
+.btn-mode:hover {
+  border-color: #8b949e;
+  color: var(--text-main);
 }
 
 .btn-mode.active {
@@ -95,6 +138,7 @@ textarea {
   resize: none;
   outline: none;
   margin-bottom: 15px;
+  transition: border-color 0.2s;
 }
 
 textarea:focus {
@@ -117,6 +161,11 @@ textarea:focus {
   font-size: 11px;
   cursor: pointer;
   transition: all 0.2s;
+}
+
+.btn-copy:hover {
+  background: #30363d;
+  border-color: var(--accent-cyan);
 }
 
 .btn-copy:active {

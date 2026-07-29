@@ -5,40 +5,53 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <!-- Заголовок страницы -->
-  <title>turtle</title>
+  <title>Turtle Translator 🐢</title>
   
   <!-- Название PWA при добавлении на рабочий стол iOS -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="turtle">
+  <meta name="apple-mobile-web-app-title" content="Turtle">
   
-  <!-- Подключаем turtle.css -->
+  <!-- Подключаем стили -->
   <link rel="stylesheet" href="turtle.css">
 </head>
 <body>
 
 <div class="container">
-  <div class="header-3d">TURTLE TRANSLATOR</div>
+  
+  <!-- Блок Header с переключателем языка и 3D заголовком -->
+  <div class="header">
+    <div class="lang-switch">
+      <button class="lang-btn active" id="langRu">RU</button>
+      <button class="lang-btn" id="langEn">EN</button>
+    </div>
+    <div class="header-3d" id="uiTitle">TURTLE TRANSLATOR</div>
+  </div>
 
+  <!-- Селектор режимов перевода -->
   <div class="mode-selector">
     <button class="btn-mode active" id="btnToTurtle">Человек ➔ Черепаха</button>
     <button class="btn-mode" id="btnFromTurtle">Черепаха ➔ Человек</button>
   </div>
 
+  <!-- Поле ввода -->
   <label id="inputLabel" for="inputText">Введи текст на человеческом:</label>
   <textarea id="inputText" placeholder="Привет..."></textarea>
 
+  <!-- Заголовок результата и кнопка копирования -->
   <div class="output-header">
-    <label>Результат:</label>
+    <label id="outputLabel">Результат:</label>
     <button id="copyBtn" class="btn-copy">Скопировать</button>
   </div>
   
+  <!-- Вывод результата -->
   <div class="output-box" id="outputText">... (тишина)</div>
 
-  <div class="footer-info">Словарь сохраняется в память устройства</div>
+  <!-- Футер -->
+  <div class="footer-info" id="footerText">Словарь сохраняется в память устройства</div>
 </div>
 
-<!-- Подключаем turtle.js -->
+<!-- Подключаем скрипт логики -->
 <script src="turtle.js"></script>
 </body>
 </html>
